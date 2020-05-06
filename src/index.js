@@ -1,20 +1,35 @@
-import React from "react";
-import { render } from "react-dom";
-import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import {
+  ApolloClient,
+  InMemoryCache,
+} from "@apollo/client";
 
 import { link } from "./graphql/link";
-import App from "./App";
 
-import "./index.css";
+const typePolicies = {
+  Movie: {
+    keyFields: incoming => {
+      return "VIEWABLE:" + incoming.id;
+    }
+  }
+};
 
-const client = new ApolloClient({
-  cache: new InMemoryCache(),
+const cache = new InMemoryCache({ typePolicies });
+
+new ApolloClient({
+  cache,
   link
 });
 
-render(
-  <ApolloProvider client={client}>
-    <App />
-  </ApolloProvider>,
-  document.getElementById("root")
-);
+console.log("Movie has a keyFn", (typeof cache.policies.typePolicies.Movie.keyFn === "function"));
+
+cache.policies.addTypePolicies({
+  Movie: {
+    fields: {
+      isPurchased() {
+        return false;
+      }
+    }
+  }
+});
+
+console.log("Movie has a keyFn", (typeof cache.policies.typePolicies.Movie.keyFn === "function"));
